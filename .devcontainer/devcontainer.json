@@ -12,7 +12,7 @@
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/app/.ssh,type=bind,consistency:cached", // ssh para o github
     "source=${localEnv:HOME}/.claude,target=/home/app/.claude,type=bind", // config do claude
-    "source=${localEnv:HOME}/.claude/projects/devc-deduplicador,target=/home/app/.claude/projects/-workspace,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.claude/projects/busca-voos,target=/home/app/.claude/projects/-workspace,type=bind,consistency=cached"
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/app/.claude",
