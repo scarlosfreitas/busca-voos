@@ -1,0 +1,11 @@
+# Segredos / config local
+.devcontainer/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+uv.lock.tmp
+
+# undetected-chromedriver (binário baixado em runtime)
+*chromedriver*

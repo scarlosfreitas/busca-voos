@@ -1,0 +1,20 @@
+{
+  //Ambiente de desenvolvimento com Debian e Claude Code
+  "name": "busca-voos",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+  "remoteUser": "app",
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/app/.claude,type=bind"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/app/.claude",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8"
+  },
+  "postCreateCommand": "bash .devcontainer/postCreate.sh"
+}
