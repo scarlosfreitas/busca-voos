@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose *)",
+      "Bash(bash -n install.sh)",
+      "Bash(bash -n .devcontainer/postCreate.sh)",
+      "Bash(bash -n scripts/clean.sh)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('.devcontainer/devcontainer.json'\\)\\); print\\('devcontainer.json OK'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git fetch *)",
+      "Bash(git push *)",
+      "Bash(command -v gh)",
+      "Bash(gh auth *)",
+      "Bash(git credential *)"
+    ]
+  }
+}

@@ -1,15 +1,18 @@
 {
-  //Ambiente de desenvolvimento com Debian e Claude Code
+  // Busca voos e notifica por telegram
   "name": "busca-voos",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
+  "shutdownAction": "none",
   "features": {
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
   "remoteUser": "app",
   "mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/app/.claude,type=bind"
+    "source=${localEnv:HOME}/.ssh,target=/home/app/.ssh,type=bind,consistency:cached", // ssh para o github
+    "source=${localEnv:HOME}/.claude,target=/home/app/.claude,type=bind", // config do claude
+    "source=${localEnv:HOME}/.claude/projects/devc-deduplicador,target=/home/app/.claude/projects/-workspace,type=bind,consistency=cached"
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/app/.claude",
