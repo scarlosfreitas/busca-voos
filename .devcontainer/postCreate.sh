@@ -44,4 +44,10 @@ if [ -f /workspace/.env ]; then
     fi
 fi
 
+echo "postCreate: ferramentas de monitoramento de consumo de tokken"
+
+curl -fsSL https://bun.com/install | bash
+uv tool install git+https://github.com/phuryn/claude-usage
+export PATH="/home/app/.local/bin:$PATH"
+
 echo "postCreate: concluído."
