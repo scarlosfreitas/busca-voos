@@ -8,106 +8,93 @@
 
 ## Estado atual
 
-Fase de planejamento concluída para o MVP: produto, regras de negócio, arquitetura técnica e o
-time de subagentes estão totalmente especificados. Nenhum código de aplicação foi escrito ainda —
-`src/` e `test/` contêm apenas os READMEs-marcador originais do template.
+**Todo o código de aplicação do MVP está implementado e testado.** As 5 camadas de
+`docs/standards/architecture.md` §2 existem, cada uma fechando a trilha completa
+`dev-planner → dev-runner → qa`:
 
-## Feito recentemente
+- `src/domain/` — modelos (`Flight`/`Route`/`Alert`), elegibilidade, deduplicação.
+- `src/persistence/` — engine/conexão Postgres, repositórios bronze/silver/gold, migration Alembic.
+- `src/extraction/` — Playwright + stealth, parser puro do payload da Gol, hierarquia de erros.
+- `src/notification/` — composição e envio de mensagens via Telegram.
+- `src/orchestration/` — `run_daily_search` (função pura e total) + asset/job/schedule Dagster
+  diário, colando as 4 camadas acima.
 
-- Executado o plano `.claude/plans/2026-07-24-ops-rede-docker-interna.md` (rede Docker interna):
-  criada rede compartilhada `busca-voos-net` (`external: true`) declarada tanto em
-  `.devcontainer/docker-compose.yml` (serviço `postgres`, também ligado a `default` para preservar
-  acesso do `app` de dev) quanto em `/workspace/docker-compose.yml` (serviço `app`, raiz). Removida
-  a publicação de `127.0.0.1:5432` do `postgres` ao host — acesso agora só pela rede interna
-  (inspeção via `docker compose exec postgres psql`), por decisão do usuário ("rede interna,
-  expondo apenas as portas necessárias"). Comentário-bloqueio no topo de `docker-compose.yml` da
-  raiz substituído por uma nota curta descrevendo a solução. **Pendente** (requer host com Docker):
-  `docker network create busca-voos-net` antes do primeiro `up`, e a validação ponta a ponta
-  (Passo 5 do plano — `postgres` healthy, `app` resolvendo o hostname `postgres` pela rede).
-- Criada a estrutura de pastas de `src/` (`domain/`, `extraction/`, `persistence/`,
-  `notification/`, `orchestration/`, `utils/`, cada uma com `__init__.py`), conforme
-  `docs/standards/architecture.md` §2 — só o esqueleto de módulos, nenhuma regra de negócio
-  implementada ainda.
-- Executado (via `infra-runner`) o plano `.claude/plans/2026-07-23-ops-docker-compose-app.md`
-  (Passos 5-8, completando o que ficara adiado): criado `/workspace/Dockerfile` (imagem
-  `mcr.microsoft.com/playwright/python:v1.55.0-noble`, `uv sync`, `CMD dagster dev`); criado
-  `/workspace/docker-compose.yml` (raiz, só o serviço `app` — **sem** duplicar `postgres`, que já
-  existe em `.devcontainer/docker-compose.yml`; comentário no arquivo documenta que `app` e
-  `postgres` estão em redes docker-compose separadas por padrão e que ligá-los exige configuração
-  manual no host, ver arquivo); criado `/workspace/.dockerignore` e `/workspace/pyproject.toml`
-  (dependencies dagster/playwright/sqlalchemy/psycopg/alembic/python-telegram-bot); `uv lock`
-  rodado com sucesso, gerou `/workspace/uv.lock`. Criado também `/workspace/.env.example` e
-  adicionado `/.env` ao `.gitignore` da raiz (pré-requisitos do `docker-compose.yml` novo).
-  **Não verificado**: Docker indisponível neste devcontainer — não foi possível rodar `docker
-  compose build`/`up` para confirmar o build da imagem `app` nem a conectividade real com o
-  `postgres`. D3 (tag da imagem Playwright) ficou fixada em `v1.55.0-noble`; a resolução de rede
-  `app`↔`postgres` continua em aberto (ver comentário no topo de `docker-compose.yml`).
-- Executado (via `infra-runner`) o plano `.claude/plans/2026-07-23-ops-docker-compose-app.md`
-  (Passos 1-4, adaptados ao alvo revisado por D1): criado `scripts/init-db.sql` (schemas
-  `bronze`/`silver`/`gold`); adicionado serviço-irmão `postgres` (imagem `postgres:16-bookworm`,
-  healthcheck `pg_isready`, porta em `127.0.0.1:${POSTGRES_PORT}`, volume `pgdata`) em
-  `.devcontainer/docker-compose.yml`; populadas `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`/
-  `POSTGRES_PORT` em `.devcontainer/.env` (não versionado). **Não verificado**: Docker é
-  indisponível dentro deste devcontainer — falta rodar `docker compose up -d postgres` num host com
-  Docker e confirmar `postgres` healthy + schemas via `\dn`.
-- `PRD.md` fechado: escopo do MVP (só Gol, só ida, rota fixa Macapá/MCP → Brasília/BSB,
-  01/09/2026), stack (Python, Playwright + stealth, Dagster, **PostgreSQL** via docker-compose,
-  Telegram), critérios de aceite e arquitetura de pastas.
-- `docs/domain/regras_negocio.md` preenchido: glossário e as 5 regras de negócio (execução,
-  elegibilidade, deduplicação, notificação, persistência) com casos de borda e validações.
-- `docs/standards/architecture.md` preenchido: pipeline Medallion em schemas Postgres
-  (bronze/silver/gold), estrutura de `src/` (`domain/extraction/persistence/notification/
-  orchestration/utils`), ferramental (`uv`, `ruff`, `alembic`), containerização e testes.
-- `CLAUDE.md` criado na raiz: fluxo de trabalho obrigatório, roteamento de contexto, convenções de
-  código (inglês no código, português na documentação, Conventional Commits, trunk-based).
-- Os 5 agentes em `.claude/agents/` (`dev-planner`, `dev-runner`, `infra-planner`, `infra-runner`, `qa`)
-  reescritos com papel/tom de voz, objetivo, modelo, effort e escopo pode/não-pode explícitos.
-- `docs/guidelines/` e `docs/standards/style.md` removidos (conteúdo consolidado em `CLAUDE.md` e
-  `architecture.md`); skills de apoio (`context7`, `postgres`, `docker-patterns`, etc.) instaladas.
+Suíte completa: **137 passed, 3 skipped** (skips são recursos opcionais puláveis por design —
+Playwright real, Telegram real, job Dagster real — quando não configurados/disponíveis). `ruff
+check`/`ruff format --check` limpos em todo `src/`, exceto 5 issues de lint + 2 arquivos de
+formatação pré-existentes em `test/domain/` (não tocados, fora do escopo de qualquer tarefa até
+agora — ver "Próxima prioridade").
+
+`workspace.yaml` (code location do Dagster) criado e validado localmente (`dagster definitions
+validate` → sucesso). **O que falta para o MVP estar 100% homologado (`PRD.md` §8) é infraestrutura
+que só um host com Docker + rede real + credenciais reais pode validar** — ver próxima prioridade.
 
 ## Feito recentemente (topo)
 
-- Executado (via `dev-planner`) o scaffold TDD de `src/notification/` — plano
-  `.claude/plans/2026-07-24-dev-notification.md`. Entregue o contrato de `telegram.py`
-  (`NotificationError`, `TelegramConfig.from_env`, `format_price`, `format_flight_alert_message`,
-  `format_failure_message`, `send_telegram_message`) com corpos `NotImplementedError`, e a suíte
-  `test/notification/` (11 unit puros de composição falhando pelo motivo certo + 1 integração de
-  envio real pulável via `RUN_TELEGRAM_INTEGRATION=1`). Decisão: envio via `httpx` síncrono
-  (promovido a dep explícita em `pyproject.toml`), não `python-telegram-bot` async. Suíte total:
-  **11 failed, 71 passed, 19 skipped**; `ruff` limpo nos arquivos de `notification`. Próximo passo é
-  `dev-runner` implementar os corpos. Ainda não commitado.
-- Executado (via `dev-runner`) o plano `.claude/plans/2026-07-24-dev-domain-models-eligibility-deduplication.md`:
-  implementados os corpos de `Flight.flight_id`, `models.validate_flight`, `eligibility.is_eligible`/
-  `select_eligible` e `deduplication.should_notify`/`select_flights_to_notify` em `src/domain/`, sem
-  alterar assinaturas/dataclasses (schema do `dev-planner`) nem os testes. Suíte `test/domain/`:
-  **33 passed, 0 failed** (`uv run pytest test/domain/ -v`); `ruff check`/`ruff format --check`
-  passam sem alterações. Nenhuma mudança de código, ainda não commitado.
+- Criado `/workspace/workspace.yaml`, apontando para `src/orchestration/assets.py:defs`
+  (`working_directory: src` para colocar `src/` no `sys.path`, já que `pyproject.toml` tem
+  `[tool.uv] package = false`). Validado localmente com `uv run dagster definitions validate -w
+  workspace.yaml` → sucesso. Plano `.claude/plans/2026-07-24-ops-workspace-yaml-validacao-stack.md`
+  (Passos 1-2 executados no devcontainer; Passos 3-7 — rede/build/up Docker real — pendentes,
+  exigem host com Docker, ver `LESSONS_LEARNED.md`).
+- Executada a trilha completa `dev-planner → dev-runner → qa` para `src/orchestration/` (plano
+  `.claude/plans/2026-07-24-dev-orchestration.md`, **último módulo de código do MVP**): asset Dagster
+  fino sobre a função pura total `run_daily_search`, controle manual de transação
+  (bronze/silver/gold atômicos; marcador de falha de extração sobrevive). O QA encontrou um bug real
+  de totalidade (`gold.last_alerted_prices`/`gold.record_alerts` escapavam do tratamento de exceção)
+  — corrigido pelo `dev-runner` num segundo ciclo, com novo `RunStatus.FAILED_GOLD_RECORD` para
+  falha de persistência pós-notificação sem duplicar alerta. Suíte final: **137 passed, 3 skipped**.
+  Commitado (`c8fed09`, `979058e` era o commit anterior de notification).
+- Executada a trilha completa para `src/notification/` (plano
+  `.claude/plans/2026-07-24-dev-notification.md`): `telegram.py` — composição pura de mensagens
+  (`format_price`/`format_flight_alert_message`/`format_failure_message`) + envio via `httpx`
+  síncrono (`send_telegram_message`, `NotificationError` tipada). QA adicionou 10 testes de
+  cobertura extra (preço 0/negativo, HTTP 200+`ok:false`, caracteres especiais). Commitado (`979058e`).
+- Executada a trilha completa para `src/extraction/` (plano `.claude/plans/2026-07-24-dev-extraction.md`):
+  `browser.py` (stealth via `playwright-stealth`, timeout 5min) + `gol.py` (`parse_gol_response`
+  puro/testável com fixtures sintéticas + `capture_gol_search` I/O). **Pendência conhecida**: o
+  shape do payload JSON da Gol é sintético — nunca capturado do site real (sem rede externa/browser
+  gráfico neste devcontainer). Precisa de validação manual futura com Playwright instalado
+  (`playwright install`) e rede real, ajustando `GOL_TRIPS_KEY`/`GOL_SEARCH_URL`/
+  `GOL_AVAILABILITY_URL_FRAGMENT` se o shape real divergir. Commitado (`51a9d89`).
+- Executada a trilha completa para `src/persistence/` (plano `.claude/plans/2026-07-24-dev-persistence.md`):
+  `db.py`/`repositories.py`/`tables.py` + migration Alembic inicial das tabelas
+  bronze/silver/gold. QA validou contra Postgres real (rede `busca-voos-net`) e escreveu 6 testes de
+  integração adicionais (append-only, isolamento por rota, `last_alerted_prices` via `MAX(alerted_at)`).
+  Commitado (`bcd613f`).
+- Commitada a implementação de `src/domain/` (models/eligibility/deduplication), já pronta de sessão
+  anterior — `bcaecee`.
+- `.devcontainer/Dockerfile`/`postCreate.sh`: adicionado `zip`/`unzip` e instalação de ferramenta de
+  monitoramento de consumo de tokens (`bun` + `claude-usage`) — `320846c`.
 
 ## Próxima prioridade
 
-- Revisar/commitar a implementação de `src/domain/` (models/eligibility/deduplication) — pendente de
-  decisão do usuário sobre o commit.
-- Acionar `dev-runner` para implementar os corpos de `src/notification/telegram.py` conforme
-  `.claude/plans/2026-07-24-dev-notification.md` (fazer os 11 testes de `test/notification/` passar
-  sem alterar assinaturas/testes).
-- Acionar `dev-planner` para o único módulo de código restante do pipeline: `orchestration/`
-  (assets/jobs Dagster que colam extraction→persistence→domain→notification), seguindo
-  `docs/standards/architecture.md` §1/§2 e `docs/domain/regras_negocio.md`.
-- **Validação ponta a ponta concluída em 2026-07-24** (Passo 5 de
-  `.claude/plans/2026-07-24-ops-rede-docker-interna.md`): com o devcontainer já reaberto e
-  `app`/`postgres` no ar na rede `busca-voos-net`, confirmado via `uv run` + `psycopg` dentro do
-  devcontainer que `app` resolve o hostname `postgres` (172.29.0.3:5432), conecta com sucesso
-  (PostgreSQL 16.14) e os schemas `bronze`/`silver`/`gold` existem. Infra de rede/banco do MVP está
-  validada de ponta a ponta.
-- Em paralelo: criar o bot no Telegram via @BotFather e obter `token`/`chat_id` (tarefa manual do
-  usuário) para popular o `.env` da raiz.
-- Quando `src/orchestration` e `workspace.yaml` existirem (trilha `dev-planner`/`dev-runner`),
-  validar `docker compose build app` / `docker compose up app`.
+1. **Validação manual em host com Docker** (Passos 3-7 de
+   `.claude/plans/2026-07-24-ops-workspace-yaml-validacao-stack.md`): `docker network create
+   busca-voos-net` (se ainda não existir), subir `postgres`, `docker compose build app` / `up -d
+   app`, confirmar UI do Dagster em `127.0.0.1:3000`, log sem erro de import do code location, e
+   `app` resolvendo `postgres` pela rede. Ver `LESSONS_LEARNED.md` — Docker não existe neste
+   devcontainer, é um passo estruturalmente manual do usuário.
+2. **Criar o bot no Telegram via @BotFather** (tarefa manual do usuário) e popular
+   `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` no `.env` da raiz — pré-requisito para o critério de
+   aceite "Entrega da Mensagem" do `PRD.md` §8.
+3. **Validar a captura real contra o site da Gol** (com Playwright instalado e rede real, fora deste
+   devcontainer): confirmar/ajustar o shape do payload em `src/extraction/gol.py`
+   (`GOL_TRIPS_KEY`/`GOL_SEARCH_URL`/`GOL_AVAILABILITY_URL_FRAGMENT` são placeholders sintéticos
+   hoje) — é o único ponto do MVP nunca validado contra o mundo real. Só depois disso os critérios
+   de aceite "Acesso e Evasão", "Execução da Rota Alvo" e "Captura via Interceptação" do `PRD.md` §8
+   podem ser considerados homologados.
+4. Depois de 1-3: rodar o job real (`RUN_ORCHESTRATION_INTEGRATION=1` ou via UI do Dagster) uma vez
+   de ponta a ponta com dados reais, para fechar a homologação completa do MVP.
+5. Limpeza menor, não bloqueante: 5 issues de lint + 2 arquivos de formatação pendentes em
+   `test/domain/` (pré-existentes, nunca tocados por nenhuma trilha até agora — `qa`/`dev-runner`
+   não podem editar testes fora do próprio escopo da tarefa corrente). Rodar `ruff check`/`ruff
+   format` em `test/domain/` isoladamente quando for conveniente.
 
 ## Contexto necessário para a próxima tarefa
 
-- `PRD.md` — o quê/porquê, escopo do MVP, seção 9 (arquitetura de pastas)
-- `docs/standards/architecture.md` — §3 (schemas Postgres), §4 (ferramental), §7 (containerização)
-  para o bootstrap de infra
-- `docs/domain/regras_negocio.md` — regras de elegibilidade/deduplicação para o módulo `domain/`
-- `.claude/agents/infra-planner.md` / `infra-runner.md` — papel e restrições de cada agente na trilha de infra
+- `PRD.md` §8 — critérios de aceite do MVP, para saber o que ainda falta homologar.
+- `.claude/plans/2026-07-24-ops-workspace-yaml-validacao-stack.md` — passos exatos de validação Docker.
+- `.claude/plans/2026-07-24-dev-extraction.md` — pendência do shape real do payload da Gol.
+- `docs/standards/architecture.md` §7 (containerização) e §6 (tratamento de erros/timeouts).
+- `LESSONS_LEARNED.md` — limitações de ambiente conhecidas (Docker indisponível no devcontainer).
