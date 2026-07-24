@@ -67,6 +67,15 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 
 ## Feito recentemente (topo)
 
+- Executado (via `dev-planner`) o scaffold TDD de `src/notification/` — plano
+  `.claude/plans/2026-07-24-dev-notification.md`. Entregue o contrato de `telegram.py`
+  (`NotificationError`, `TelegramConfig.from_env`, `format_price`, `format_flight_alert_message`,
+  `format_failure_message`, `send_telegram_message`) com corpos `NotImplementedError`, e a suíte
+  `test/notification/` (11 unit puros de composição falhando pelo motivo certo + 1 integração de
+  envio real pulável via `RUN_TELEGRAM_INTEGRATION=1`). Decisão: envio via `httpx` síncrono
+  (promovido a dep explícita em `pyproject.toml`), não `python-telegram-bot` async. Suíte total:
+  **11 failed, 71 passed, 19 skipped**; `ruff` limpo nos arquivos de `notification`. Próximo passo é
+  `dev-runner` implementar os corpos. Ainda não commitado.
 - Executado (via `dev-runner`) o plano `.claude/plans/2026-07-24-dev-domain-models-eligibility-deduplication.md`:
   implementados os corpos de `Flight.flight_id`, `models.validate_flight`, `eligibility.is_eligible`/
   `select_eligible` e `deduplication.should_notify`/`select_flights_to_notify` em `src/domain/`, sem
@@ -78,8 +87,12 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 
 - Revisar/commitar a implementação de `src/domain/` (models/eligibility/deduplication) — pendente de
   decisão do usuário sobre o commit.
-- Acionar `dev-planner` para o próximo módulo do pipeline (ex.: `extraction`/`persistence`), seguindo
-  `docs/standards/architecture.md` §2 e `docs/domain/regras_negocio.md`.
+- Acionar `dev-runner` para implementar os corpos de `src/notification/telegram.py` conforme
+  `.claude/plans/2026-07-24-dev-notification.md` (fazer os 11 testes de `test/notification/` passar
+  sem alterar assinaturas/testes).
+- Acionar `dev-planner` para o único módulo de código restante do pipeline: `orchestration/`
+  (assets/jobs Dagster que colam extraction→persistence→domain→notification), seguindo
+  `docs/standards/architecture.md` §1/§2 e `docs/domain/regras_negocio.md`.
 - **Validação ponta a ponta concluída em 2026-07-24** (Passo 5 de
   `.claude/plans/2026-07-24-ops-rede-docker-interna.md`): com o devcontainer já reaberto e
   `app`/`postgres` no ar na rede `busca-voos-net`, confirmado via `uv run` + `psycopg` dentro do

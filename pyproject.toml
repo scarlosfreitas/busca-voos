@@ -12,6 +12,7 @@ dependencies = [
     "psycopg[binary]",
     "alembic",
     "python-telegram-bot",
+    "httpx",
 ]
 
 [dependency-groups]
