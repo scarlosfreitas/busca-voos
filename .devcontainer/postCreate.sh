@@ -15,9 +15,9 @@ echo "postCreate: iniciando setup do container..."
 
 # >>> devc-debian-claude: plugins selecionados (gerado por install.sh/install.ps1) >>>
 # Instalação selecionada durante o bootstrap:
-claude plugin install context7@claude-plugins-official --scope user
-claude plugin marketplace add mksglu/context-mode
-claude plugin install context-mode@context-mode --scope user
+# claude plugin install context7@claude-plugins-official --scope user
+# claude plugin marketplace add mksglu/context-mode
+# claude plugin install context-mode@context-mode --scope user
 # <<< devc-debian-claude: plugins selecionados <<<
 
 echo "postCreate: concluído."
