@@ -75,8 +75,8 @@ estrutura de módulos `src/domain`, `extraction`, `persistence`, `notification`,
 Após finalizar uma tarefa com sucesso:
 
 1. Atualize `/STATUS.md`: descreva o que foi feito, atualize "Feito recentemente" e defina a
-   próxima prioridade (indicando qual trilha de agentes atende — `plan-dev`/`run-dev`/`test-ops`
-   para código, `plan-ops`/`run-ops` para infra).
+   próxima prioridade (indicando qual trilha de agentes atende — `dev-planner`/`dev-runner`/`qa`
+   para código, `infra-planner`/`infra-runner` para infra).
 2. Se você resolveu um bug complexo ou descobriu uma limitação de biblioteca/ambiente (ex:
    conflito de dependência, comportamento inesperado do Playwright/stealth, peculiaridade do
    Postgres em container), registre uma entrada clara em `/LESSONS_LEARNED.md` (crie o arquivo se

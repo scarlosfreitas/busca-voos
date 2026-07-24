@@ -48,13 +48,13 @@ acessível *dentro* do devcontainer.
   `/docker-entrypoint-initdb.d`.
 
 **Execução desta rodada:** por decisão do usuário, esta tarefa fica **registrada como plano**, mas
-a execução (`run-ops` criando/editando `.devcontainer/docker-compose.yml`, `.devcontainer/.env`,
+a execução (`infra-runner` criando/editando `.devcontainer/docker-compose.yml`, `.devcontainer/.env`,
 `scripts/init-db.sql`, `pyproject.toml`) **não roda agora** — apenas o registro do plano foi
-publicado. Retomar com o `run-ops` quando o usuário pedir.
+publicado. Retomar com o `infra-runner` quando o usuário pedir.
 
 ## 3. Passos (comando/conteúdo exato + critério de verificação)
 
-> O `run-ops` cria/edita os arquivos abaixo. Todos os caminhos são absolutos a partir de
+> O `infra-runner` cria/edita os arquivos abaixo. Todos os caminhos são absolutos a partir de
 > `/workspace`.
 
 ### Passo 0 — Pré-condição de ambiente (bloqueante)
@@ -103,7 +103,7 @@ APP_IMAGE_TAG=dev
 nenhum segredo real.
 
 ### Passo 3 — `/workspace/.env` (real, NÃO commitado — criado pelo usuário)
-O `run-ops` **não** preenche segredos. Instrução: copiar o exemplo e preencher no host:
+O `infra-runner` **não** preenche segredos. Instrução: copiar o exemplo e preencher no host:
 ```bash
 cp /workspace/.env.example /workspace/.env
 # editar POSTGRES_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
@@ -158,7 +158,7 @@ CMD ["uv", "run", "dagster", "dev", "-w", "workspace.yaml", "-h", "0.0.0.0", "-p
 ```
 Notas: o `COPY uv.loc[k]` é um glob que não falha se o arquivo não existir. `workspace.yaml` e
 `src/orchestration` **ainda não existem** — a imagem builda, mas o container `app` só sobe de fato
-após a trilha `plan-dev` entregar o código do Dagster (ver D2/D4 e sequência).
+após a trilha `dev-planner` entregar o código do Dagster (ver D2/D4 e sequência).
 **Verificação:** no host, `docker compose build app` conclui sem erro e `docker run --rm
 busca-voos-app:dev uv run python -c "import playwright; print('ok')"` imprime `ok`.
 
@@ -244,7 +244,7 @@ scripts/plugins.sh
 --rm busca-voos-app:dev ls -a /app` não lista `.env`).
 
 ### Passo 8 — `/workspace/pyproject.toml` (mínimo — ver decisão D2)
-**Somente se aprovado D2.** Versões a fixar pelo `plan-dev`:
+**Somente se aprovado D2.** Versões a fixar pelo `dev-planner`:
 ```toml
 [project]
 name = "busca-voos"
@@ -279,18 +279,18 @@ compose build app` conclui.
   desenhado separadamente do devcontainer.
 - **D2 — RESOLVIDO.** Instalação 100% via `uv` (`pyproject.toml` + `uv.lock`, `uv sync`), sem
   `pip install` manual — confirma `architecture.md` §4. `pyproject.toml` mínimo ainda a criar
-  quando o `run-ops` for acionado.
+  quando o `infra-runner` for acionado.
 - **D3 — Ainda em aberto.** Tag da imagem `mcr.microsoft.com/playwright/python` precisa casar com
-  a versão de `playwright` fixada no `pyproject.toml` — decisão do `plan-dev`/`run-ops` na próxima
+  a versão de `playwright` fixada no `pyproject.toml` — decisão do `dev-planner`/`infra-runner` na próxima
   execução.
 - **D4 — RESOLVIDO.** Placeholder `command: sleep infinity` para qualquer serviço `app` de
   produção até existir código Dagster (`src/orchestration`, `workspace.yaml`).
 - **D5 — Ainda em aberto**, mas menos urgente dado D1: como o `postgres` agora sobe junto do
-  devcontainer, `src/domain/` pode começar a ser desenvolvido (via `plan-dev`) assim que o
-  `run-ops` aplicar o Passo 1 (schemas) e a nova versão dos Passos do `.devcontainer/`.
+  devcontainer, `src/domain/` pode começar a ser desenvolvido (via `dev-planner`) assim que o
+  `infra-runner` aplicar o Passo 1 (schemas) e a nova versão dos Passos do `.devcontainer/`.
 - **Execução:** adiada a pedido do usuário nesta rodada — apenas o registro do plano foi
-  commitado/publicado. Retomar com `run-ops` quando solicitado.
+  commitado/publicado. Retomar com `infra-runner` quando solicitado.
 - **Risco menor — non-root.** A imagem Playwright roda como root por padrão; hardening
   (`user: pwuser`) fica para iteração posterior.
 - **Risco menor — exposição de portas.** Porta do `postgres` exposta ao host conforme pedido pelo
-  usuário; revisar se deve ficar restrita a `127.0.0.1` quando o `run-ops` for acionado.
+  usuário; revisar se deve ficar restrita a `127.0.0.1` quando o `infra-runner` for acionado.
