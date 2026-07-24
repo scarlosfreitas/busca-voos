@@ -1,0 +1,17 @@
+{
+  "trips": [
+    {
+      "origin": "MCP",
+      "destination": "BSB",
+      "departureDate": "2026-09-01",
+      "flights": [
+        {
+          "airlineCode": "G3",
+          "flightNumber": "1234",
+          "departureDateTime": "2026-09-01T08:30:00",
+          "cabin": "economy"
+        }
+      ]
+    }
+  ]
+}

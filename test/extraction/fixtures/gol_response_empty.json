@@ -1,0 +1,10 @@
+{
+  "trips": [
+    {
+      "origin": "MCP",
+      "destination": "BSB",
+      "departureDate": "2026-09-01",
+      "flights": []
+    }
+  ]
+}
