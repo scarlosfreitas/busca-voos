@@ -67,20 +67,20 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 
 ## Próxima prioridade
 
-- **Validar a infra de rede/postgres** num host com Docker disponível (fora deste devcontainer,
-  ver [[project_docker_not_in_devcontainer]]): rodar `docker network create busca-voos-net` (uma
-  vez), depois `docker compose -f .devcontainer/docker-compose.yml up -d postgres` e confirmar
-  `healthy` + schemas `bronze`/`silver`/`gold` via `\dn`; em seguida `docker compose -f
-  docker-compose.yml up -d app` e confirmar que `app` resolve o hostname `postgres` pela rede
-  `busca-voos-net` (Passo 5 de `.claude/plans/2026-07-24-ops-rede-docker-interna.md`). Ação manual
-  do usuário.
-- Com o banco confirmado: iniciar a trilha `dev-planner` → `dev-runner` → `qa` para o módulo
-  `src/domain/` (regras de elegibilidade e deduplicação), que não depende de infraestrutura externa
-  e pode ser desenvolvido em TDD isoladamente.
+- **Validação ponta a ponta concluída em 2026-07-24** (Passo 5 de
+  `.claude/plans/2026-07-24-ops-rede-docker-interna.md`): com o devcontainer já reaberto e
+  `app`/`postgres` no ar na rede `busca-voos-net`, confirmado via `uv run` + `psycopg` dentro do
+  devcontainer que `app` resolve o hostname `postgres` (172.29.0.3:5432), conecta com sucesso
+  (PostgreSQL 16.14) e os schemas `bronze`/`silver`/`gold` existem. Infra de rede/banco do MVP está
+  validada de ponta a ponta.
+- `src/domain/` já tem scaffold TDD do `dev-planner` (`models.py`, `eligibility.py`,
+  `deduplication.py` + testes em `test/domain/`, `pyproject.toml` com `pytest` apontando para
+  `src`/`test`) — próximo passo é acionar o `dev-runner` para implementar a lógica que satisfaz
+  esses testes, seguindo `docs/domain/regras_negocio.md`.
 - Em paralelo: criar o bot no Telegram via @BotFather e obter `token`/`chat_id` (tarefa manual do
   usuário) para popular o `.env` da raiz.
 - Quando `src/orchestration` e `workspace.yaml` existirem (trilha `dev-planner`/`dev-runner`),
-  validar `docker compose build app` / `docker compose up app` num host com Docker.
+  validar `docker compose build app` / `docker compose up app`.
 
 ## Contexto necessário para a próxima tarefa
 
