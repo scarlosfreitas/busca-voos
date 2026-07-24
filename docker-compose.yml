@@ -1,0 +1,43 @@
+# Compose da APLICAÇÃO (busca-voos). Separado do compose do devcontainer
+# (.devcontainer/docker-compose.yml), que é apenas o ambiente do Claude Code.
+#
+# REDE: 'app' (aqui) e 'postgres' (.devcontainer/docker-compose.yml) são projetos compose
+# diferentes, mas compartilham a rede docker externa 'busca-voos-net' (external: true nos dois
+# arquivos). Isso permite que 'app' resolva o hostname 'postgres' pela rede interna.
+# Pré-requisito no host, UMA vez, antes de qualquer `docker compose up`:
+#     docker network create busca-voos-net
+# O 'postgres' NÃO é publicado ao host; o acesso é só pela rede interna (inspeção via
+# `docker compose -f .devcontainer/docker-compose.yml exec postgres psql ...`).
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: busca-voos-app:${APP_IMAGE_TAG:-dev}
+    container_name: busca-voos-app
+    env_file:
+      - .env
+    environment:
+      TZ: America/Sao_Paulo
+      # Sem localhost hardcoded: host = nome do serviço 'postgres' (architecture.md §7).
+      # Requer que 'app' e 'postgres' (.devcontainer/docker-compose.yml) estejam na mesma rede
+      # docker — ver nota de REDE no topo deste arquivo.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DAGSTER_HOME: /opt/dagster/dagster_home
+      PLAYWRIGHT_TIMEOUT_MS: ${PLAYWRIGHT_TIMEOUT_MS:-300000}
+      PROXY_URL: ${PROXY_URL:-}
+    ports:
+      - "127.0.0.1:3000:3000"   # UI do Dagster, só acessível do host
+    networks:
+      - shared
+    volumes:
+      - dagster_home:/opt/dagster/dagster_home
+    restart: unless-stopped
+
+volumes:
+  dagster_home:
+
+networks:
+  shared:
+    external: true
+    name: busca-voos-net

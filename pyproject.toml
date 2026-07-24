@@ -1,0 +1,21 @@
+[project]
+name = "busca-voos"
+version = "0.1.0"
+description = "Monitoramento e alerta de passagens aéreas (Gol) via Playwright + Dagster."
+requires-python = ">=3.11"
+dependencies = [
+    "dagster",
+    "dagster-webserver",
+    "playwright",
+    "playwright-stealth",
+    "sqlalchemy",
+    "psycopg[binary]",
+    "alembic",
+    "python-telegram-bot",
+]
+
+[dependency-groups]
+dev = ["ruff", "pytest"]
+
+[tool.uv]
+package = false

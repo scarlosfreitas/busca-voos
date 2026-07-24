@@ -1,6 +1,9 @@
 # Segredos / config local
 .devcontainer/.env
 
+# .env da APLICAÇÃO na raiz (segredos: Postgres, Telegram, proxy)
+/.env
+
 # Python
 __pycache__/
 *.py[cod]
