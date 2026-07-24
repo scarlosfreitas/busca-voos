@@ -16,7 +16,7 @@ a próxima prioridade.
 | :--- | :--- |
 | [`STATUS.md`](./STATUS.md) | Estado atual do projeto e próxima prioridade — leitura obrigatória antes de qualquer tarefa. |
 | [`CLAUDE.md`](./CLAUDE.md) | Fluxo de trabalho e roteamento de contexto para agentes de IA. |
-| [`.claude/PRD.md`](./.claude/PRD.md) | O quê e o porquê: escopo do MVP, arquitetura recomendada, critérios de aceite. |
+| [`PRD.md`](./PRD.md) | O quê e o porquê: escopo do MVP, arquitetura recomendada, critérios de aceite. |
 | [`docs/domain/regras_negocio.md`](./docs/domain/regras_negocio.md) | Fonte única da verdade das regras de negócio (elegibilidade, deduplicação, notificação). |
 | [`docs/standards/architecture.md`](./docs/standards/architecture.md) | Padrões técnicos: estrutura de `src/`, schemas Postgres, ferramental, testes. |
 | [`.claude/agents/`](./.claude/agents/) | Definição do time de subagentes (planejadores e executores, dev e infra, QA). |

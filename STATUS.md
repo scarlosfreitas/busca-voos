@@ -3,7 +3,7 @@
 > **Ponto de partida obrigatório.** Antes de qualquer tarefa, leia este arquivo: ele diz o estado
 > atual do projeto, o que acabou de ser feito e qual é a próxima prioridade. A partir daqui, siga
 > o princípio da **injeção de contexto sob demanda** — carregue apenas os arquivos que a tarefa
-> atual exige (`.claude/PRD.md`, `docs/domain/`, `docs/standards/`, o plano relevante em
+> atual exige (`PRD.md`, `docs/domain/`, `docs/standards/`, o plano relevante em
 > `.claude/plans/`), em vez de tentar ler tudo de uma vez.
 
 ## Estado atual
@@ -14,7 +14,7 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 
 ## Feito recentemente
 
-- `.claude/PRD.md` fechado: escopo do MVP (só Gol, só ida, rota fixa Macapá/MCP → Brasília/BSB,
+- `PRD.md` fechado: escopo do MVP (só Gol, só ida, rota fixa Macapá/MCP → Brasília/BSB,
   01/09/2026), stack (Python, Playwright + stealth, Dagster, **PostgreSQL** via docker-compose,
   Telegram), critérios de aceite e arquitetura de pastas.
 - `docs/domain/regras_negocio.md` preenchido: glossário e as 5 regras de negócio (execução,
@@ -43,7 +43,7 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 
 ## Contexto necessário para a próxima tarefa
 
-- `.claude/PRD.md` — o quê/porquê, escopo do MVP, seção 9 (arquitetura de pastas)
+- `PRD.md` — o quê/porquê, escopo do MVP, seção 9 (arquitetura de pastas)
 - `docs/standards/architecture.md` — §3 (schemas Postgres), §4 (ferramental), §7 (containerização)
   para o bootstrap de infra
 - `docs/domain/regras_negocio.md` — regras de elegibilidade/deduplicação para o módulo `domain/`

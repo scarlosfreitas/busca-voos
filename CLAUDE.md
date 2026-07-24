@@ -16,7 +16,7 @@ Antes de iniciar qualquer nova tarefa ou alterar código, você **DEVE**:
    leia o arquivo correspondente em `docs/features/`. Nunca deduza o escopo de uma feature nova
    por conta própria. Essa pasta ainda não existe no repositório — ela é criada quando a primeira
    feature pós-MVP precisar de um PRD próprio; até lá, o escopo vigente é inteiramente o descrito
-   em `.claude/PRD.md`.
+   em `PRD.md`.
 
 Aplique **injeção de contexto sob demanda**: carregue apenas os arquivos que a tarefa atual exige,
 em vez de ler o repositório inteiro a cada sessão.
@@ -27,7 +27,7 @@ Não deduza lógica de negócio ou arquitetura — consulte sempre a fonte corre
 
 | Pergunta | Fonte |
 | :--- | :--- |
-| Qual o propósito do produto, o que está dentro/fora do escopo do MVP, critérios de aceite? | `.claude/PRD.md` |
+| Qual o propósito do produto, o que está dentro/fora do escopo do MVP, critérios de aceite? | `PRD.md` |
 | Qual a regra de negócio (elegibilidade, deduplicação, notificação, persistência)? | `docs/domain/regras_negocio.md` — fonte única da verdade do domínio |
 | Qual o padrão técnico (estrutura de `src/`, schemas bronze/silver/gold no Postgres, ferramental Python, containerização, testes)? | `docs/standards/architecture.md` |
 | Como estruturar comunicação/orquestração entre subagentes? | `.claude/guidelines/` (ainda não existe — criar quando a primeira regra concreta de orquestração de agentes surgir; até lá, siga as definições de `tools`/`model` em `.claude/agents/*.md`) |

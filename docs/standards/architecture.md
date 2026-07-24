@@ -1,6 +1,6 @@
 # Padrões de Arquitetura de Software e Dados
 
-> Referência de **como construir**. O `.claude/PRD.md` define o quê e o porquê; o
+> Referência de **como construir**. O `PRD.md` define o quê e o porquê; o
 > `docs/domain/regras_negocio.md` define as regras de negócio; este arquivo define os padrões
 > técnicos que o código deve seguir para que diferentes agentes/sessões produzam um sistema
 > coerente.
@@ -24,7 +24,7 @@ Não há API HTTP nem frontend no MVP. Toda a superfície de execução é o job
 
 ## 2. Estrutura de Módulos (`src/`)
 
-Segue a separação definida em `.claude/PRD.md` (seção 9): `domain/` para regras de negócio,
+Segue a separação definida em `PRD.md` (seção 9): `domain/` para regras de negócio,
 `utils/` para infraestrutura técnica. Módulos concretos propostos:
 
 ```
