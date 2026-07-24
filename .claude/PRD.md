@@ -27,20 +27,6 @@ Devido às severas proteções em sites de companhias aéreas, a estratégia div
 *   **Fase 2: Evasão em Nível de Rede (Produção)**
     *   Implementação de serviços de Proxy Residencial Rotativo (ex: Bright Data, Oxylabs) para disfarçar o IP do datacenter, pulverizando as requisições em redes domésticas padrão e evitando firewalls de borda (como Cloudflare/Akamai).
 
-## 5. Fluxo de Execução (Pipeline de Dados)
-A rotina diária será orquestrada adotando a arquitetura Medallion:
-
-1.  **Ingestão (Camada Bronze):**
-    *   Dagster aciona o script Python.
-    *   Playwright acessa a interface de busca, intercepta a resposta JSON nativa da API da companhia e salva o dado bruto (raw) no PostgreSQL.
-2.  **Processamento (Camada Prata/Ouro):**
-    *   Tratamento dos JSONs, isolando valores limpos (Reais e Pontos/Milhas).
-    *   Cruzamento dos dados com as regras de negócio de limite de valor.
-3.  **Distribuição (Alerta):**
-    *   Verificação na Camada Ouro: se a passagem atingir o preço/milhagem alvo, os dados são compilados.
-    *   Disparo via Telegram com detalhes (Cia, Data, Trecho, Preço/Milhas, Link) e encerramento do *job*.
-    *   Em caso de falha na extração (bloqueio, CAPTCHA, timeout), uma notificação de erro também é enviada via Telegram.
-
 ## 6. Requisitos de Configuração e Deploy
 *   **Dockerfile:** Baseado em imagens oficiais da Microsoft (`mcr.microsoft.com/playwright/python`) contendo todas as bibliotecas de sistema operacional (C++) necessárias para os *browsers* do Playwright.
 *   **Gestão de Segredos:** Tokens de Telegram, strings de proxy e rotas parametrizadas armazenadas externamente (Secret Manager ou `.env`), sem *hardcode*.
@@ -67,20 +53,3 @@ Para validar a viabilidade técnica e a resiliência contra os sistemas anti-bot
 *   **Persistência:** Os dados brutos e processados devem ser gravados corretamente no PostgreSQL.
 *   **Entrega da Mensagem (Telegram):** Ao concluir a extração, o script deve compilar os voos encontrados e disparar com sucesso uma notificação via API do Telegram quando houver voo elegível. A mensagem recebida no aplicativo deve ser clara, contendo os horários, valores encontrados e a data da pesquisa.
 *   **Notificação de Falha:** Em caso de erro na extração, uma mensagem de falha deve ser enviada via Telegram.
-
-## 9. Arquitetura de Pastas e Artefatos
-A estrutura completa não precisa existir desde o início do projeto, mas todo artefato criado (código, documentação, scripts, configuração) deve respeitar os caminhos abaixo à medida que for sendo produzido:
-
-| Caminho / Arquivo(s) | Propósito / Função para o Agente |
-| :-------------------- | :-------------------------------- |
-| **`/STATUS.md`** | **Ponto de partida obrigatório.** Informa ao agente o estado atual do projeto, o que acabou de ser feito e qual a próxima prioridade. |
-| **`.claude/PRD.md`** | **O "Quê" e o "Porquê".** A bússola do projeto contendo os requisitos de produto, regras de negócio de alto nível e critérios de aceite inequívocos. |
-| **`.claude/plan/*`** | **O "Como" (Execução da IA).** Documentos com o roadmap de tarefas, sessões paralelas e orquestração gerados pelos agentes. |
-| **`.claude/guidelines/`** | **Comportamento da IA.** Regras sobre como criar subagentes, como estruturar atualizações no PRD e como/quando utilizar ferramentas nativas da IDE. |
-| **`docs/domain/regras_negocio.md`** | **Fonte única da verdade do negócio.** O agente consulta este arquivo para entender lógicas, cálculos (ex: regras de precificação, elegibilidade de alerta) e validações de domínio. |
-| **`docs/standards/`**<br>`architecture.md`, `style.md` | **Engenharia e Código.** Padrões de arquitetura, regras de linting e estilo para garantir que o código gerado obedeça às diretrizes do projeto. |
-| **`.devcontainer/`**<br>`devcontainer.json`, `Dockerfile` | **Ambiente.** Mantém as regras de ambiente e infraestrutura isoladas para agentes DevOps e garante execução reprodutível conteinerizada. |
-| **`/data/lakehouse/`**<br>`bronze/`, `silver/`, `gold/` | **Armazenamento de Dados.** Estrutura conceitual de ingestão e refinamento (arquitetura Medallion, seção 5). No MVP os dados residem no PostgreSQL (docker-compose) — os níveis bronze/silver/gold são modelados como *schemas* ou *tabelas* no banco, e não como arquivos DuckDB/Iceberg neste diretório. |
-| **`scripts/`**<br>`setup.sh`, `test.sh` | **Ação.** Scripts executáveis para automações de terminal, como rodar testes em loop (TDD) ou preparar infraestrutura. |
-| **`src/`**<br>`(domain/, utils/)` | **Código de Produção Principal.** Lógica central da aplicação, isolada de ferramentas externas e orquestradores. |
-| **`test/`**<br>`*.spec.ts`, `*.test.py` | **Controle de Qualidade (TDD).** O agente executa esses testes em loop contínuo até o terminal aprovar a lógica criada nos diretórios `src/`. |

@@ -14,5 +14,8 @@
       "Bash(gh auth *)",
       "Bash(git credential *)"
     ]
+  },
+  "skillOverrides": {
+    "next-best-practices": "off"
   }
 }
