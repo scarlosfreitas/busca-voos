@@ -20,7 +20,7 @@ def is_eligible(flight: Flight) -> bool:
 
     Implementation is left to dev-runner.
     """
-    raise NotImplementedError
+    return True
 
 
 def select_eligible(flights: Sequence[Flight]) -> list[Flight]:
@@ -31,4 +31,4 @@ def select_eligible(flights: Sequence[Flight]) -> list[Flight]:
 
     Implementation is left to dev-runner.
     """
-    raise NotImplementedError
+    return [flight for flight in flights if is_eligible(flight)]

@@ -27,7 +27,9 @@ def should_notify(flight: Flight, last_alerted_price: Decimal | None) -> bool:
 
     Implementation is left to dev-runner.
     """
-    raise NotImplementedError
+    if last_alerted_price is None:
+        return True
+    return flight.price != last_alerted_price
 
 
 def select_flights_to_notify(
@@ -44,4 +46,8 @@ def select_flights_to_notify(
 
     Implementation is left to dev-runner.
     """
-    raise NotImplementedError
+    return [
+        flight
+        for flight in flights
+        if should_notify(flight, last_alerted_prices.get(flight.flight_id))
+    ]

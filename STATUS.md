@@ -65,18 +65,27 @@ time de subagentes estão totalmente especificados. Nenhum código de aplicaçã
 - `docs/guidelines/` e `docs/standards/style.md` removidos (conteúdo consolidado em `CLAUDE.md` e
   `architecture.md`); skills de apoio (`context7`, `postgres`, `docker-patterns`, etc.) instaladas.
 
+## Feito recentemente (topo)
+
+- Executado (via `dev-runner`) o plano `.claude/plans/2026-07-24-dev-domain-models-eligibility-deduplication.md`:
+  implementados os corpos de `Flight.flight_id`, `models.validate_flight`, `eligibility.is_eligible`/
+  `select_eligible` e `deduplication.should_notify`/`select_flights_to_notify` em `src/domain/`, sem
+  alterar assinaturas/dataclasses (schema do `dev-planner`) nem os testes. Suíte `test/domain/`:
+  **33 passed, 0 failed** (`uv run pytest test/domain/ -v`); `ruff check`/`ruff format --check`
+  passam sem alterações. Nenhuma mudança de código, ainda não commitado.
+
 ## Próxima prioridade
 
+- Revisar/commitar a implementação de `src/domain/` (models/eligibility/deduplication) — pendente de
+  decisão do usuário sobre o commit.
+- Acionar `dev-planner` para o próximo módulo do pipeline (ex.: `extraction`/`persistence`), seguindo
+  `docs/standards/architecture.md` §2 e `docs/domain/regras_negocio.md`.
 - **Validação ponta a ponta concluída em 2026-07-24** (Passo 5 de
   `.claude/plans/2026-07-24-ops-rede-docker-interna.md`): com o devcontainer já reaberto e
   `app`/`postgres` no ar na rede `busca-voos-net`, confirmado via `uv run` + `psycopg` dentro do
   devcontainer que `app` resolve o hostname `postgres` (172.29.0.3:5432), conecta com sucesso
   (PostgreSQL 16.14) e os schemas `bronze`/`silver`/`gold` existem. Infra de rede/banco do MVP está
   validada de ponta a ponta.
-- `src/domain/` já tem scaffold TDD do `dev-planner` (`models.py`, `eligibility.py`,
-  `deduplication.py` + testes em `test/domain/`, `pyproject.toml` com `pytest` apontando para
-  `src`/`test`) — próximo passo é acionar o `dev-runner` para implementar a lógica que satisfaz
-  esses testes, seguindo `docs/domain/regras_negocio.md`.
 - Em paralelo: criar o bot no Telegram via @BotFather e obter `token`/`chat_id` (tarefa manual do
   usuário) para popular o `.env` da raiz.
 - Quando `src/orchestration` e `workspace.yaml` existirem (trilha `dev-planner`/`dev-runner`),

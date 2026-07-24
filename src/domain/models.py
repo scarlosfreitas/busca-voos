@@ -67,7 +67,8 @@ class Flight:
         ``"{origin}-{destination}-{YYYY-MM-DD}-{flight_number}"`` so that two
         captures of the same physical flight on different runs share one key.
         """
-        raise NotImplementedError
+        departure_date = self.route.departure_date.isoformat()
+        return f"{self.route.origin}-{self.route.destination}-{departure_date}-{self.flight_number}"
 
 
 @dataclass(frozen=True)
@@ -97,4 +98,16 @@ def validate_flight(flight: Flight) -> None:
 
     Implementation is left to dev-runner.
     """
-    raise NotImplementedError
+    required_fields = {
+        "carrier": flight.carrier,
+        "flight_number": flight.flight_number,
+        "origin": flight.route.origin,
+        "destination": flight.route.destination,
+        "currency": flight.currency,
+    }
+    for name, value in required_fields.items():
+        if not value:
+            raise InvalidFlightError(f"{name} must not be empty")
+
+    if flight.price is None or flight.price <= 0:
+        raise InvalidFlightError("price must be a strictly positive number")
