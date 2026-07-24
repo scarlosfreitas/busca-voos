@@ -1,0 +1,10 @@
+# Code location do pipeline (architecture.md §1: um único entrypoint, sem API/frontend).
+# 'working_directory: src' coloca /app/src no sys.path para resolver os imports absolutos do
+# módulo (from domain..., from extraction..., etc.), já que pyproject tem [tool.uv] package = false
+# (src NÃO é instalado como pacote; pythonpath=["src"] do pytest não vale no runtime do dagster).
+# 'relative_path'/'working_directory' resolvem relativo à pasta deste arquivo (=/app no container).
+load_from:
+  - python_file:
+      relative_path: src/orchestration/assets.py
+      working_directory: src
+      attribute: defs
