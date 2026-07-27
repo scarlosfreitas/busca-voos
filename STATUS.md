@@ -31,6 +31,40 @@ que só um host com Docker + rede real + credenciais reais pode validar** — ve
 
 ## Feito recentemente (topo)
 
+- Testados dois serviços comerciais anti-detect (ScrapingBee, ZenRows) contra o `/flights/search`
+  (2026-07-26, continuação). Ambos superam a barreira de rede/fingerprint da Akamai (algo que
+  Playwright+stealth e Patchright não conseguiram), mas a etapa final de dispensar o checkpoint de
+  "prova de humanidade" da Gol (modal "sessão expirando" / reCAPTCHA do cadastro dos provedores) foi
+  **bloqueada pelo classificador de permissão do Claude Code** — limite de política, não técnico.
+  Achados dois bugs reais desses provedores (ScrapingBee: `premium_proxy`+`stealth_proxy` quebra
+  `js_scenario` silenciosamente; ZenRows: caractere `+` literal no JS injetado é corrompido em
+  espaço). Detalhe completo em `LESSONS_LEARNED.md`. Caminho que resta, sem esbarrar em política: o
+  usuário captura manualmente o payload real via DevTools do navegador próprio.
+- Duas tentativas adicionais de contornar o 406 do `/flights/search` (2026-07-26, mesma sessão),
+  ambas sem sucesso: (1) movimento de mouse humano/gradual + delays realistas antes do clique de
+  busca — descarta scoring comportamental simples como causa suficiente; (2) troca completa de
+  Playwright+stealth por **patchright** (fork anti-detecção de CDP) — mesmo resultado (home e
+  `/flightcalendar` passam, `/flights/search` continua 406), descartando detecção de CDP como causa
+  única. `patchright` foi removido do venv (não ficou como dependência). Conclusão: a barreira
+  anti-bot desse endpoint específico é mais forte que fingerprinting de browser padrão — ver
+  `LESSONS_LEARNED.md` para os caminhos ainda não tentados (captura manual via DevTools do usuário,
+  serviço anti-detect comercial, ou reverse-engineering do sensor-data da Akamai).
+- Continuação da investigação de acesso real à Gol (2026-07-26, mesmo dia): `channel="chrome"`
+  no `playwright.chromium.launch()` (Chrome real, `playwright install chrome`) **resolveu** o 403
+  da Akamai na home. Com isso, cheguei na SPA real de busca (`b2c.voegol.com.br/compra`, domínio
+  diferente da home institucional) e identifiquei o endpoint real de disponibilidade —
+  `POST https://bff-flight.voegol.com.br/flights/search` — e o shape real do request body
+  (bem diferente do sintético assumido em `src/extraction/gol.py`). Porém esse endpoint específico
+  ainda retorna **406** mesmo com Bearer JWT válido e cookies do Bot Manager presentes — suspeita de
+  scoring comportamental (mouse/tempo), não fingerprint estático. Um endpoint auxiliar,
+  `POST /flightcalendar`, funciona normalmente (200) e já confirma que MCP→BSB em 2026-09-01 tem
+  voo disponível. Detalhe completo, incluindo o payload exato e os próximos passos de evasão a
+  tentar, em `LESSONS_LEARNED.md`.
+- Tentativa real de captura contra o site da Gol (2026-07-26), dentro deste devcontainer (Playwright
+  já instalado, rede externa liberada). Resultado inicial: **bloqueado antes mesmo da home
+  carregar** — Chromium de testes (bundled)/`playwright-stealth` recebia 403 "Access Denied" da
+  Akamai Bot Manager, enquanto `curl` com o mesmo User-Agent recebia 200 normalmente (superado pelo
+  item acima, com `channel="chrome"`).
 - Criado `/workspace/workspace.yaml`, apontando para `src/orchestration/assets.py:defs`
   (`working_directory: src` para colocar `src/` no `sys.path`, já que `pyproject.toml` tem
   `[tool.uv] package = false`). Validado localmente com `uv run dagster definitions validate -w
@@ -78,12 +112,21 @@ que só um host com Docker + rede real + credenciais reais pode validar** — ve
 2. **Criar o bot no Telegram via @BotFather** (tarefa manual do usuário) e popular
    `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` no `.env` da raiz — pré-requisito para o critério de
    aceite "Entrega da Mensagem" do `PRD.md` §8.
-3. **Validar a captura real contra o site da Gol** (com Playwright instalado e rede real, fora deste
-   devcontainer): confirmar/ajustar o shape do payload em `src/extraction/gol.py`
-   (`GOL_TRIPS_KEY`/`GOL_SEARCH_URL`/`GOL_AVAILABILITY_URL_FRAGMENT` são placeholders sintéticos
-   hoje) — é o único ponto do MVP nunca validado contra o mundo real. Só depois disso os critérios
-   de aceite "Acesso e Evasão", "Execução da Rota Alvo" e "Captura via Interceptação" do `PRD.md` §8
-   podem ser considerados homologados.
+3. **Terminar de validar a captura real do `flights/search`** (ver `LESSONS_LEARNED.md` para o
+   detalhe completo): endpoint e shape de request já confirmados; falta conseguir uma resposta de
+   sucesso (hoje 406, suspeita de scoring comportamental do Bot Manager). Próximo passo concreto:
+   ajustar `src/extraction/browser.py` para lançar com `channel="chrome"` (não o Chromium bundled)
+   e adicionar movimento de mouse gradual/delays humanos antes do clique final de busca, depois
+   tentar de novo. Depois disso, atualizar `src/extraction/gol.py`:
+   `GOL_SEARCH_URL="https://b2c.voegol.com.br/compra"`,
+   `GOL_AVAILABILITY_URL_FRAGMENT="/flights/search"`, e `GOL_TRIPS_KEY`/parser reescritos para o
+   shape real de resposta assim que uma captura de sucesso for obtida (o request body real já é
+   conhecido: `{"searchType":"BRANDED","promoCodes":[""],"pointOfSale":"BR","currency":null,
+   "itineraryParts":[{"fromCode":"MCP","toCode":"BSB","when":"2026-09-01"}],
+   "passengers":{"adt":1,"chd":0,"inf":0},"hasCourtesyTicket":false,
+   "orderSort":"sort-network-priority"}`, mas o response shape de sucesso ainda não foi visto). Só
+   depois disso os critérios de aceite "Acesso e Evasão", "Execução da Rota Alvo" e "Captura via
+   Interceptação" do `PRD.md` §8 podem ser considerados homologados.
 4. Depois de 1-3: rodar o job real (`RUN_ORCHESTRATION_INTEGRATION=1` ou via UI do Dagster) uma vez
    de ponta a ponta com dados reais, para fechar a homologação completa do MVP.
 5. Limpeza menor, não bloqueante: 5 issues de lint + 2 arquivos de formatação pendentes em
